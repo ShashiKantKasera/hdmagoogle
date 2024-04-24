@@ -80,6 +80,17 @@
                 var Area = event.feature.getProperty('Area');
                 var SUBCLASS = event.feature.getProperty('SUBCLASS');
 
+                var geometry = event.feature.getGeometry();
+                var centroid = getCentroid(geometry);
+
+                  // Create marker for UID_NUMBER
+                var marker = new google.maps.Marker({
+                    position: centroid,
+                    map: map,
+                    label: UID_NUMBER
+                });
+
+
                 var infoWindowContent = '<div>';
                 infoWindowContent += '<strong>UID_NUMBER:</strong> ' + UID_NUMBER + '<br>';
                 infoWindowContent += '<strong>Area:</strong> ' + Area + '<br>';
@@ -94,6 +105,29 @@
                 infoWindow.setPosition(event.latLng);
                 infoWindow.open(map);
             });
+
+                        // Function to calculate centroid of a geometry
+            function getCentroid(geometry) {
+                if (geometry.getType() === 'Polygon') {
+                    var bounds = new google.maps.LatLngBounds();
+                    geometry.getArray().forEach(function (path) {
+                        path.getArray().forEach(function (latLng) {
+                            bounds.extend(latLng);
+                        });
+                    });
+                    return bounds.getCenter();
+                } else if (geometry.getType() === 'MultiPolygon') {
+                    var bounds = new google.maps.LatLngBounds();
+                    geometry.getArray().forEach(function (polygon) {
+                        polygon.getArray().forEach(function (path) {
+                            path.getArray().forEach(function (latLng) {
+                                bounds.extend(latLng);
+                            });
+                        });
+                    });
+                    return bounds.getCenter();
+                }
+            }
         }
     </script>
 
