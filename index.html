@@ -19,14 +19,47 @@
             // Initialize the map
             var map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 17.296145221384663, lng: 78.5234524034775 },
-                zoom: 17
+                zoom: 19
             });
 
             // Load the GeoJSON file
-            map.data.loadGeoJson('./hmda.geojson');
+            map.data.loadGeoJson('./hmda.geojson', null, function (features) {
+                // Iterate through each feature and create a marker with label
+                features.forEach(function (feature) {
+                    var UID_NUMBER = feature.getProperty('UID_NUMBER');
+                    var geometry = feature.getGeometry();
+                    var centroid = getCentroid(geometry);
+
+                    // Create marker for UID_NUMBER with label
+                    var marker = new google.maps.Marker({
+                        position: centroid,
+                        map: map,
+                        label: UID_NUMBER.toString() // Convert UID_NUMBER to string for label
+                    });
+
+                    // Add click event listener to marker
+                    marker.addListener('click', function () {
+                        var Area = feature.getProperty('Area');
+                        var SUBCLASS = feature.getProperty('SUBCLASS');
+
+                        var infoWindowContent = '<div>';
+                        infoWindowContent += '<strong>UID_NUMBER:</strong> ' + UID_NUMBER + '<br>';
+                        infoWindowContent += '<strong>Area:</strong> ' + Area + '<br>';
+                        infoWindowContent += '<strong>SUBCLASS:</strong> ' + SUBCLASS + '<br>';
+                        // Add other properties as needed
+                        infoWindowContent += '</div>';
+
+                        var infoWindow = new google.maps.InfoWindow({
+                            content: infoWindowContent
+                        });
+
+                        infoWindow.open(map, marker);
+                    });
+                });
+            });
 
             // Style the features based on SUBCLASS property
-            map.data.setStyle(function(feature) {
+            map.data.setStyle(function (feature) {
                 var subclass = feature.getProperty('SUBCLASS');
                 var area = feature.getProperty('Area');
 
@@ -35,22 +68,17 @@
                         fillColor: 'purple',
                         strokeWeight: 1
                     };
-                }
-               
-              else if (subclass === "PLOTS" && area ===146 ) {
+                } else if (subclass === "PLOTS" && area === 146) {
                     return {
                         fillColor: 'pink',
                         strokeWeight: 1
                     };
-                }
-               else if (subclass === "PLOTS" && area ===137 ) {
+                } else if (subclass === "PLOTS" && area === 137) {
                     return {
                         fillColor: 'red',
                         strokeWeight: 1
                     };
-                }
-
-                else if (subclass === "OWNER'S LAND" ) {
+                } else if (subclass === "OWNER'S LAND") {
                     return {
                         fillColor: 'yellow',
                         strokeWeight: 1
@@ -65,7 +93,7 @@
                         fillColor: 'black',
                         strokeWeight: 1
                     };
-                }else {
+                } else {
                     return {
                         fillColor: 'blue', // Default color for other features
                         strokeWeight: 1
@@ -73,40 +101,7 @@
                 }
             });
 
-
-            // Add event listener for click on features
-            map.data.addListener('click', function (event) {
-                var UID_NUMBER = event.feature.getProperty('UID_NUMBER');
-                var Area = event.feature.getProperty('Area');
-                var SUBCLASS = event.feature.getProperty('SUBCLASS');
-
-                var geometry = event.feature.getGeometry();
-                var centroid = getCentroid(geometry);
-
-                  // Create marker for UID_NUMBER
-                var marker = new google.maps.Marker({
-                    position: centroid,
-                    map: map,
-                    label: UID_NUMBER
-                });
-
-
-                var infoWindowContent = '<div>';
-                infoWindowContent += '<strong>UID_NUMBER:</strong> ' + UID_NUMBER + '<br>';
-                infoWindowContent += '<strong>Area:</strong> ' + Area + '<br>';
-                infoWindowContent += '<strong>SUBCLASS:</strong> ' + SUBCLASS + '<br>';
-                // Add other properties as needed
-                infoWindowContent += '</div>';
-
-                var infoWindow = new google.maps.InfoWindow({
-                    content: infoWindowContent
-                });
-
-                infoWindow.setPosition(event.latLng);
-                infoWindow.open(map);
-            });
-
-                        // Function to calculate centroid of a geometry
+            // Function to calculate centroid of a geometry
             function getCentroid(geometry) {
                 if (geometry.getType() === 'Polygon') {
                     var bounds = new google.maps.LatLngBounds();
