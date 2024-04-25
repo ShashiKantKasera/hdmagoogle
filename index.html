@@ -16,7 +16,6 @@
 
     <script>
         function initMap() {
-            // Initialize the map
             var map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 17.296145221384663, lng: 78.5234524034775 },
                 zoom: 19
@@ -24,37 +23,9 @@
 
             // Load the GeoJSON file
             map.data.loadGeoJson('./hmda.geojson', null, function (features) {
-                // Iterate through each feature and create a marker with label
+                // Iterate through each feature and add labels
                 features.forEach(function (feature) {
-                    var UID_NUMBER = feature.getProperty('UID_NUMBER');
-                    var geometry = feature.getGeometry();
-                    var centroid = getCentroid(geometry);
-
-                    // Create marker for UID_NUMBER with label
-                    var marker = new google.maps.Marker({
-                        position: centroid,
-                        map: map,
-                        label: UID_NUMBER.toString() // Convert UID_NUMBER to string for label
-                    });
-
-                    // Add click event listener to marker
-                    marker.addListener('click', function () {
-                        var Area = feature.getProperty('Area');
-                        var SUBCLASS = feature.getProperty('SUBCLASS');
-
-                        var infoWindowContent = '<div>';
-                        infoWindowContent += '<strong>UID_NUMBER:</strong> ' + UID_NUMBER + '<br>';
-                        infoWindowContent += '<strong>Area:</strong> ' + Area + '<br>';
-                        infoWindowContent += '<strong>SUBCLASS:</strong> ' + SUBCLASS + '<br>';
-                        // Add other properties as needed
-                        infoWindowContent += '</div>';
-
-                        var infoWindow = new google.maps.InfoWindow({
-                            content: infoWindowContent
-                        });
-
-                        infoWindow.open(map, marker);
-                    });
+                    addLabelsToFeatures(feature, map);
                 });
             });
 
@@ -100,6 +71,47 @@
                     };
                 }
             });
+
+            // Function to add labels to features
+            function addLabelsToFeatures(feature, map) {
+                if (feature.getProperty('UID_NUMBER')) {
+                    var uidNumber = feature.getProperty('UID_NUMBER');
+                    var centroid = getCentroid(feature.getGeometry());
+
+                    var label = new google.maps.Marker({
+                        position: centroid,
+                        map: map,
+                        label: uidNumber.toString(),
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: 'white',
+                            fillOpacity: 1,
+                            scale: 10,
+                            strokeColor: 'black',
+                            strokeWeight: 2
+                        }
+                    });
+
+                    // Add click event listener to label marker
+                    label.addListener('click', function () {
+                        var Area = feature.getProperty('Area');
+                        var SUBCLASS = feature.getProperty('SUBCLASS');
+
+                        var infoWindowContent = '<div>';
+                        infoWindowContent += '<strong>UID_NUMBER:</strong> ' + uidNumber + '<br>';
+                        infoWindowContent += '<strong>Area:</strong> ' + Area + '<br>';
+                        infoWindowContent += '<strong>SUBCLASS:</strong> ' + SUBCLASS + '<br>';
+                        // Add other properties as needed
+                        infoWindowContent += '</div>';
+
+                        var infoWindow = new google.maps.InfoWindow({
+                            content: infoWindowContent
+                        });
+
+                        infoWindow.open(map, label);
+                    });
+                }
+            }
 
             // Function to calculate centroid of a geometry
             function getCentroid(geometry) {
